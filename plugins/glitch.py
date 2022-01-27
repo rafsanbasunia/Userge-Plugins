@@ -1,32 +1,31 @@
 """ Glitch Media """
+
+# By @Krishna_Singhal
+
 import os
 
-from glitch_this import ImageGlitcher
 from PIL import Image
-from userge import Config, Message, userge
-from userge.utils import runcmd, take_screen_shot
+from glitch_this import ImageGlitcher
+
+from userge import userge, Message, Config
+from userge.utils import take_screen_shot, runcmd
 
 Glitched = Config.DOWN_PATH + "glitch.gif"
 
 
-@userge.on_cmd(
-    "glitch",
-    about={
-        "header": "Reply to any media to glitch",
-        "flags": {"-s": "Upload glitched IMG as a Sticker"},
-        "usage": "{tr}glitch [glitch count] [reply to any media]\n"
-        "glitch count = 0 to 8(default is 2)",
-    },
-)
+@userge.on_cmd("glitch", about={
+    'header': "Reply to any media to glitch",
+    'flags': {
+        '-s': "Upload glitched IMG as a Sticker"},
+    'usage': "{tr}glitch [glitch count] [reply to any media]\n"
+             "glitch count = 0 to 8(default is 2)"})
 async def glitch_(message: Message):
     """ Create Glitch effect in any media """
     replied = message.reply_to_message
-    if not (
-        replied
-        and (replied.photo or replied.sticker or replied.video or replied.animation)
-    ):
+    if not (replied and (
+            replied.photo or replied.sticker or replied.video or replied.animation)):
         await message.edit("```Media not found...```")
-        await message.reply_sticker("CAADBQADVAUAAjZgsCGE7PH3Wt1wSRYE")
+        await message.reply_sticker('CAADBQADVAUAAjZgsCGE7PH3Wt1wSRYE')
         return
     if message.filtered_input_str:
         if not message.filtered_input_str.isdigit():
@@ -41,9 +40,10 @@ async def glitch_(message: Message):
         args = 2
     if not os.path.isdir(Config.DOWN_PATH):
         os.makedirs(Config.DOWN_PATH)
-    await message.edit("```Glitching Media...```")
+    await message.edit("```Glitching... 😁```")
     dls = await message.client.download_media(
-        message=replied, file_name=Config.DOWN_PATH
+        message=replied,
+        file_name=Config.DOWN_PATH
     )
     dls_loc = os.path.join(Config.DOWN_PATH, os.path.basename(dls))
     glitch_file = None
@@ -74,31 +74,33 @@ async def glitch_(message: Message):
     glitcher = ImageGlitcher()
     img = Image.open(glitch_file)
     message_id = replied.message_id
-    if "-s" in message.flags:
+    if '-s' in message.flags:
         glitched = Config.DOWN_PATH + "glitched.webp"
         glitch_img = glitcher.glitch_image(img, args, color_offset=True)
         glitch_img.save(glitched)
         await message.client.send_sticker(
-            message.chat.id, glitched, reply_to_message_id=message_id
-        )
+            message.chat.id,
+            glitched,
+            reply_to_message_id=message_id)
         os.remove(glitched)
+        await message.delete()
     else:
         glitch_img = glitcher.glitch_image(img, args, color_offset=True, gif=True)
         DURATION = 200
         LOOP = 0
         glitch_img[0].save(
             Glitched,
-            format="GIF",
+            format='GIF',
             append_images=glitch_img[1:],
             save_all=True,
             duration=DURATION,
-            loop=LOOP,
-        )
+            loop=LOOP)
         await message.client.send_animation(
-            message.chat.id, Glitched, reply_to_message_id=message_id
-        )
+            message.chat.id,
+            Glitched,
+            reply_to_message_id=message_id)
         os.remove(Glitched)
-    await message.delete()
+        await message.delete()
     for files in (dls_loc, glitch_file):
         if files and os.path.exists(files):
             os.remove(files)

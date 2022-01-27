@@ -25,7 +25,8 @@ Portions Copyright (c) tl;dr; authors and contributors <https://github.com/tldr-
 
 import requests
 from bs4 import BeautifulSoup
-from userge import Message, userge
+
+from userge import userge, Message
 
 
 @userge.on_cmd(

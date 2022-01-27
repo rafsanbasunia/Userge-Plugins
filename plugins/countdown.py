@@ -18,15 +18,14 @@ from userge import Message, userge
     allow_via_bot=False,
 )
 async def count_it_down(message: Message):
-    """Start A CountDown"""
+    """ Start A CountDown """
     reply = message.reply_to_message
     args = message.input_str
     if args:
         text = args
     else:
         return await message.err("Input not found!", del_in=5)
-    # Checking if format is Valid
-    pattern = r"%%(?:[0-9]{2}-[0-9]{2}-[0-9]{2})%%"
+    pattern = r"%%(?:[0-9]{2}-[0-9]{2}-[0-9]{2})%%"  # Checking if format is Valid
     match = re.search(pattern, args)
     if not match:
         return await message.err("Format Invalid ! See Help For More Info !", del_in=5)

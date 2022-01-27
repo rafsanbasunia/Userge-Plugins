@@ -34,7 +34,7 @@ async def ss_gen(message: Message):
                 should_clean = False
 
     if replied:
-        if not replied.video:
+        if not replied.video and not replied.animation:
             await message.edit("I doubt it is a video")
             return
         await message.edit("Downloading Video to my Local")

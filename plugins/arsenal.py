@@ -1,6 +1,7 @@
 import asyncio
 import time
 
+from pyrogram import filters
 from pyrogram.errors import FloodWait
 from userge import Config, Message, logging, userge
 
@@ -39,6 +40,16 @@ async def banager(message: Message, chat_id: int, user_id: int, until_date: int)
     only_admins=True,
 )
 async def snapper(message: Message):
+    try:
+        async with userge.conversation(message.chat.id) as conv:
+            confirm = await conv.send_message("Are you sure you want to do this?\nSend `Yes, i'm nuking this chat's members.` to confirm.")
+            response = await conv.get_response(mark_read=True, filters=(filters.user([one for one in Config.TRUSTED_SUDO_USERS]) | filters.me))
+        if response.text == "Yes, i'm nuking this chat's members.":
+            await confirm.edit("`Ok, as you wish, nuking this chat's members.`", del_in=5)
+        else:
+            return await confirm.edit("`Since the response was not correct, cancelling this command.`")
+    except:
+        return await message.edit("`Response time expired.`")
     chat_id = message.chat.id
     act = "Banning"
     if "-k" in message.flags:

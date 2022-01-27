@@ -3,6 +3,8 @@ import os
 
 from userge import Config, Message, userge
 
+from userge.plugins.forbidden_jutsu.stop import forbidden_sudo
+
 S_LOG = userge.getCLogger(__name__)
 
 
@@ -47,7 +49,7 @@ async def spam(message: Message):
                 f"Spammed Sticker in Chat» {message.chat.title}, {count} times"
             )
             await message.delete()
-        elif replied.animation or replied.video or replied.photo:
+        elif replied.animation or replied.video or replied.animation or replied.photo:
             dls = await message.client.download_media(
                 message=message.reply_to_message, file_name=Config.DOWN_PATH
             )
@@ -64,13 +66,23 @@ async def spam(message: Message):
                 return
             await message.edit(f"Spamming {count} times")
             for _ in range(count):
-                await message.client.send_cached_media(message.chat.id, to_spam)
+                if not replied.animation and not replied.video:
+                    await message.client.send_cached_media(message.chat.id, to_spam)
+                elif replied.animation:
+                    await message.client.send_animation(message.chat.id, dls)
+                elif replied.video:
+                    await message.client.send_video(message.chat.id, dls)
                 await asyncio.sleep(delay)
             await S_LOG.log(
                 f"Spammed Media in Chat» {message.chat.title}, {count} times"
             )
             await message.delete()
     elif replied and replied.text and not is_str:
+        no_go = forbidden_sudo(message, replied.text)
+        if no_go:
+            return await S_LOG.log(
+                f"User {message.from_user.mention} tried to use sudo command <b>in forbidden way</b>!!!"
+            )
         count = message.input_str
         if " " in count:
             count, delay = count.split(" ", maxsplit=1)
@@ -93,6 +105,11 @@ async def spam(message: Message):
         spam_count, spam_text = message.input_str.split("|", maxsplit=1)
         if "|" in spam_text:
             spam_text, delay = spam_text.split("|", maxsplit=1)
+        no_go = forbidden_sudo(message, spam_text)
+        if no_go:
+            return await S_LOG.log(
+                f"User {message.from_user.mention} tried to use sudo command <b>in forbidden way</b>!!!"
+            )
         try:
             sc = int(spam_count)
             delay = float(delay) if "." in delay else int(delay)
